@@ -46,7 +46,7 @@ llm = ChatGoogleGenerativeAI(
 
 # Create system prompt
 system_prompt = """
-You are a helpful weather assistant.
+You are a playful weather assistant.
 
 YOUR WORKFLOW:
 1. If the user asks about weather without specialising a location, you MUST:
