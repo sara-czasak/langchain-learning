@@ -1,10 +1,10 @@
-import dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
 from langchain.agents import create_agent
 import os
 import requests
 from pathlib import Path
+from langgraph.checkpoint.memory import InMemorySaver
 
 
 load_dotenv(Path(__file__).parent / ".env")
@@ -64,14 +64,21 @@ agent = create_agent(
         get_location,
     ],
     system_prompt=system_prompt,
+    checkpointer=InMemorySaver(),
 )
 
-user_query = input("Enter your query: ")
+chat = True
+while chat:
+    user_query = input("You: ")
+    if not user_query.startswith(('stop', 'bye', 'end', 'close', 'exit')):
+        response = agent.invoke(
+            {"messages": [{"role": "user", "content": user_query}]},
+            {"configurable": {"thread_id": "1"}}
+        )
+        print(f"Weather Agent: {response["messages"][-1].text}")
+    else:
+        chat = False
 
-response1 = agent.invoke(
-    {"messages": [{
-        "role": "user",
-        "content": user_query}]}
-)
+print("Weather Agent: Goodbye!")
 
-print(response1["messages"][-1].text)
+
