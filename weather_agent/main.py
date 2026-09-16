@@ -5,6 +5,7 @@ import os
 import requests
 from pathlib import Path
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.checkpoint.sqlite import SqliteSaver
 
 
 load_dotenv(Path(__file__).parent / ".env")
@@ -56,29 +57,31 @@ YOUR WORKFLOW:
 2. If the user provides a city, call get_weather(city) directly.
 """
 
-# Create Agent
-agent = create_agent(
-    model=llm,
-    tools=[
-        get_weather,
-        get_location,
-    ],
-    system_prompt=system_prompt,
-    checkpointer=InMemorySaver(),
-)
+# Adding persistent memory with Sqlite
+with SqliteSaver.from_conn_string('checkpoint.db') as checkpointer:
+    # Create Agent
+    agent = create_agent(
+        model=llm,
+        tools=[
+            get_weather,
+            get_location,
+        ],
+        system_prompt=system_prompt,
+        checkpointer=checkpointer,
+    )
 
-chat = True
-while chat:
-    user_query = input("You: ")
-    if not user_query.startswith(('stop', 'bye', 'end', 'close', 'exit')):
-        response = agent.invoke(
-            {"messages": [{"role": "user", "content": user_query}]},
-            {"configurable": {"thread_id": "1"}}
-        )
-        print(f"Weather Agent: {response["messages"][-1].text}")
-    else:
-        chat = False
+    chat = True
+    while chat:
+        user_query = input("You: ")
+        if not user_query.startswith(('stop', 'bye', 'end', 'close', 'exit')):
+            response = agent.invoke(
+                {"messages": [{"role": "user", "content": user_query}]},
+                {"configurable": {"thread_id": "1"}}
+            )
+            print(f"Weather Agent: {response["messages"][-1].text}")
+        else:
+            chat = False
 
-print("Weather Agent: Goodbye!")
+    print("Weather Agent: Goodbye!")
 
 
