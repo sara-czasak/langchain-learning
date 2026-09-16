@@ -78,7 +78,7 @@ with SqliteSaver.from_conn_string('checkpoint.db') as checkpointer:
                 {"messages": [{"role": "user", "content": user_query}]},
                 {"configurable": {"thread_id": "1"}}
             )
-            print(f"Weather Agent: {response["messages"][-1].text}")
+            print(f"Weather Agent: {response["messages"][-1].text}\n\n")
         else:
             chat = False
 
