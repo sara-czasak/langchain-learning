@@ -92,11 +92,22 @@
 
     <form method="POST" action="/send" class="input-form" id="chatForm">
         <input type="text" name="message" placeholder="Type your message.." required />
+        <input type="hidden" name="latitude" id="latitude"/>
+        <input type="hidden" name="longitude" id="longitude"/>
         <button type="submit">Send</button>
     </form>
 
     <a href="/clear">
         <button type="button" class="clear-btn">New Conversation</button>
     </a>
+    <script>
+        // Get user's location once when page loads
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                document.getElementById('latitude').value = position.coords.latitude;
+                document.getElementById('longitude').value = position.coords.longitude;
+            });
+        }
+    </script>
 </body>
 </html>

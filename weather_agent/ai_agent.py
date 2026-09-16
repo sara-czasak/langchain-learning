@@ -30,8 +30,9 @@ def get_weather(city: str):
 def get_location():
     """Get users current location. Use this when user asks about
     weather without specifying the city"""
+
     response = requests.get("https://ipapi.co/json/",
-                            headers={'User-agent': 'your-bot 0.1'})
+                            headers={'User-agent': 'my-bot 0.1'})
     data = response.json()
     city = data['city']
     country = data.get('country_name')
@@ -48,6 +49,8 @@ llm = ChatGoogleGenerativeAI(
 # Create system prompt
 system_prompt = """
 You are a playful weather assistant.
+While your tone is light you stay focused on getting user related 
+information to the user.
 
 YOUR WORKFLOW:
 1. If the user asks about weather without specialising a location, you MUST:
@@ -58,30 +61,21 @@ YOUR WORKFLOW:
 """
 
 # Adding persistent memory with Sqlite
-with SqliteSaver.from_conn_string('checkpoint.db') as checkpointer:
-    # Create Agent
-    agent = create_agent(
-        model=llm,
-        tools=[
-            get_weather,
-            get_location,
-        ],
-        system_prompt=system_prompt,
-        checkpointer=checkpointer,
-    )
+connection =  SqliteSaver.from_conn_string('checkpoint.db')
+checkpointer = connection.__enter__()
 
-    chat = True
-    while chat:
-        user_query = input("You: ")
-        if not user_query.startswith(('stop', 'bye', 'end', 'close', 'exit')):
-            response = agent.invoke(
-                {"messages": [{"role": "user", "content": user_query}]},
-                {"configurable": {"thread_id": "1"}}
-            )
-            print(f"Weather Agent: {response["messages"][-1].text}\n\n")
-        else:
-            chat = False
+# Create Agent
+agent = create_agent(
+    model=llm,
+    tools=[
+        get_weather,
+        get_location,
+    ],
+    system_prompt=system_prompt,
+    checkpointer=checkpointer,
+)
 
-    print("Weather Agent: Goodbye!")
+
+
 
 
